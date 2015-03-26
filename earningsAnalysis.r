@@ -1,5 +1,7 @@
 # cor(a,method="spearman",use="pairwise.complete.obs")
 
+
+
 # a=earningsData[6:67]
 # cor(a, 
  
