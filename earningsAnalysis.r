@@ -11,11 +11,9 @@
 rm(list=ls())
 # read earnings data (pre-parsed)
 
-
 eData <-  read.csv("C:/Users/smlek001/Desktop/Finance/earnings_database/all_close/earningsData.csv")
 
 #interaction.plot(eData$EarnDate,eData$Sector,eData$Change)
-
 
 
 #avg chg vs. market chg
