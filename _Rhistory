@@ -1,0 +1,7 @@
+```{r}
+library(Quandl)
+USGDPraw <- Quandl("FRED/GDP")
+USGDP <- as.xts(USGDPraw[,2],as.date(USGDPraw[,1]))
+```
+USGDP <- as.xts(USGDPraw[,2],as.Date(USGDPraw[,1]))
+Quandl("DMDRN/IBM_ALLFINANCIALRATIOS")

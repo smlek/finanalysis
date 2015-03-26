@@ -1,0 +1,77 @@
+---
+title: "Downloading Financial Data"
+author: "stan mlekodaj"
+date: "Saturday, March 07, 2015"
+output: html_document
+---
+## To-Do's
+- single-quotes  
+- historical data  
+        - stock  
+        - FX  
+        - commodities  
+        - economic  
+        - indexes  
+- intraday data  
+        - stock  
+        - FX  
+- twsInstrument
+
+## Required Libraries
+
+```{r echo=FALSE, results='hide'}
+library(quantmod)
+library(qmao)
+library(Quandl)
+# Quandl API token
+Quandl.auth("gW-ELo6Cq1GqfYyks2r3")
+```
+
+## Single quotes (typically delayed, maybe IB?)
+getQuote("AAPL")
+
+This is Yahoo FOREX data, must add "=X" after the pair. EURUSD,AUDUSD,GBPUSD,USDJPY,EURJPY,EURGBP,USDCAD,USDCHF. Reverse pairs also supported.  
+getQuote("EURUSD=X") 
+
+## Historical data
+####Stocks  
+startDate = as.Date("2008-01-13") #Specify period of time we are interested in  
+endDate = as.Date("2012-01-12")  
+tickers <- c("ARM","CSR")  
+getSymbols(tickers, src = "yahoo", from = startDate, to = endDate)
+
+#### Economic
+USGDP <- Quandl("FRED/GDP",type="xts")
+
+#### FOREX
+This gives 1USD = x EUR  
+USDEUR<-Quandl("CURRFX/USDEUR", type="xts",authcode="gW-ELo6Cq1GqfYyks2r3")
+
+This gives  1EUR = x USD  
+getSymbols("DEXUSEU",src="FRED", from=as.Date("2014-01-01"), to=as.Date("2015-01-01"))
+
+#### Indexes
+SP500 <- Quandl("YAHOO/INDEX_GSPC",type="xts",authcode="gW-ELo6Cq1GqfYyks2r3")  
+NASDAQ <- Quandl("NASDAQOMX/NDX",type="xts",authcode="gW-ELo6Cq1GqfYyks2r3")  
+DJIA <- Quandl("BCB/UDJIAD1",type="xts",authcode="gW-ELo6Cq1GqfYyks2r3")  
+
+## Intraday data & correlations
+#### Google intraday data
+Data is available in several frequencies with the lowest one being one-minute time frame.
+
+The URL format is: http://www.google.com/finance/getprices?i=[PERIOD]&p=[DAYS]d&f=d,o,h,l,c,v&df=cpct&q=[TICKER]
+
+Example: http://www.google.com/finance/getprices?i=60&p=10d&f=d,o,h,l,c,v&df=cpct&q=IBM
+
+[PERIOD]: Interval or frequency in seconds
+[DAYS]: The historical data period, where "10d" means that we need historical stock prices data for the past 10 days.
+[TICKER]: This is the ticker symbol of the stock
+
+Read more: http://www.quantshare.com/sa-426-6-ways-to-download-free-intraday-and-tick-data-for-the-us-stock-market#ixzz3U1VdRlWy 
+
+#### Intraday data.Uses google, also works for FX
+source("intradayFuncs.R") # external functions file  
+f.get.google.intraday("EURUSD",1,1)  
+f.get.google.intraday("AAPL",1,1)  
+
+
