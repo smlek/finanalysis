@@ -1,8 +1,7 @@
 # cor(a,method="spearman",use="pairwise.complete.obs")
 
 # a=earningsData[6:67]
-# cor(a,
- 
+# cor(a, 
  
 # Gap+Change.from.Open = Change-after-Earnings.  This is necessary since earnings are outside trading hours.
 
