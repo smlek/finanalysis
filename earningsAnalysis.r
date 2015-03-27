@@ -5,13 +5,24 @@
  
 # Gap+Change.from.Open = Change-after-Earnings.  This is necessary since earnings are outside trading hours.
 
-# Local directory
-#paste(Sys.getenv("HOME"),"/Rscripts",sep="")
- 
+# Clear variables and load packages
 rm(list=ls())
-# read earnings data (pre-parsed)
+require(xts)
 
-eData <-  read.csv("C:/Users/smlek001/Desktop/Finance/earnings_database/all_close/earningsData.csv")
+# Data directories.  Assumes R directory is "Rscripts"
+dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data",sep="")
+finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close",sep="")
+
+# read SP500 5yr data
+sp5yr_1<-read.csv(paste(dataDir,"/sp500_5yrs_1.csv",sep=""))
+sp5yr_2<-read.csv(paste(dataDir,"/sp500_5yrs_2.csv",sep=""))#broken up into 2 files
+sp5yr<-cbind(sp5yr_1,sp5yr_2)
+rm(sp5yr_1,sp5yr_2)
+sp5yr$Date<-as.Date(sp5yr$Date,format='%m/%d/%Y')       #format date
+sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series
+
+# read earnings data (pre-parsed)
+earnData<-read.csv(paste(dataDir,"/earningsData.csv",sep=""))
 
 #interaction.plot(eData$EarnDate,eData$Sector,eData$Change)
 
