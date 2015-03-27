@@ -1,6 +1,6 @@
 rm(list=ls())
 
-# Local directory
+# User directory
 #paste(Sys.getenv("HOME"),"/Rscripts",sep="")
 
 file <- "C:/Users/smlek001/Desktop/Finance/earnings_database/EarningsData4q2013.csv"
