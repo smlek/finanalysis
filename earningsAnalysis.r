@@ -1,9 +1,3 @@
-# cor(a,method="spearman",use="pairwise.complete.obs")
-
-# a=earningsData[6:67]
-# cor(a, 
- 
-# Gap+Change.from.Open = Change-after-Earnings.  This is necessary since earnings are outside trading hours.
 
 # Clear variables and load packages
 rm(list=ls())
@@ -14,17 +8,27 @@ dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data",sep="")
 finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close",sep="")
 
 # read SP500 5yr data
-sp5yr_1<-read.csv(paste(dataDir,"/sp500_5yrs_1.csv",sep=""))
-sp5yr_2<-read.csv(paste(dataDir,"/sp500_5yrs_2.csv",sep=""))#broken up into 2 files
-sp5yr<-cbind(sp5yr_1,sp5yr_2)
-rm(sp5yr_1,sp5yr_2)
+# sp5yr_1<-read.csv(paste(dataDir,"/sp500_5yrs_1.csv",sep=""))
+# sp5yr_2<-read.csv(paste(dataDir,"/sp500_5yrs_2.csv",sep=""))#broken up into 2 files
+# sp5yr<-cbind(sp5yr_1,sp5yr_2)
+# rm(sp5yr_1,sp5yr_2)
+sp5yr<-read.csv(paste(dataDir,"/sp500_5yr.csv",sep=""))
 sp5yr$Date<-as.Date(sp5yr$Date,format='%m/%d/%Y')       #format date
-sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series
+sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 # read earnings data (pre-parsed)
-earnData<-read.csv(paste(dataDir,"/earningsData.csv",sep=""))
+eData<-read.csv(paste(dataDir,"/earningsData.csv",sep=""))
 
-#interaction.plot(eData$EarnDate,eData$Sector,eData$Change)
+# data cleanup
+names(eData)<-tolower(names(eData)) # make headings all lowercase for simplicity
+eDataNum <- eData[,-c(1:5,68:71)] #remove non-numeric columns
+
+
+earnCor <- cor(eDataNum,eData$change,use="pairwise.complete",method="spearman")
+RSIsma20cor <- cor(eData$relative.strength.index..14.,eData$x20.day.simple.moving.average,
+                use="pairwise.complete",method="spearman")
+
+#interaction.plot(eData$earndate,eData$sector,eData$change)
 
 #avg chg vs. market chg
 
@@ -52,35 +56,35 @@ PB <- list()
 AvgEChg <- list()
 StDevEChg <- list()
 
-numInd <- length(levels(eData$Industry))
+numInd <- length(levels(eData$industry))
 for (ind in 1:numInd) {
-	v1 <- subset(eData, eData$Industry==levels(eData$Industry)[ind])
-	Industry[ind] <- levels(eData$Industry)[ind]
-	PerfMonth[ind] <- mean(v1$Performance..Month, na.rm = TRUE)
-	PerfQtr[ind] <-  mean(v1$Performance..Quarter, na.rm = TRUE)
-	PerfYear[ind] <-  mean(v1$Performance..Year, na.rm = TRUE)
-	PerfYTD[ind] <-  mean(v1$Performance..YTD, na.rm = TRUE)
-	SMA50[ind] <- mean(v1$X50.Day.Simple.Moving.Average, na.rm = TRUE)
-	SMA200[ind] <-  mean(v1$X200.Day.Simple.Moving.Average, na.rm = TRUE)
-	VolatMonth[ind] <-  mean(v1$Volatility..Month, na.rm = TRUE)
-	PE[ind] <- mean(v1$P.E, na.rm = TRUE)
-	PB[ind] <- mean(v1$P.B, na.rm = TRUE)
-	AvgEChg[ind] <- mean(v1$Change, na.rm = TRUE)
-	StDevEChg[ind] <- sd(v1$Change, na.rm = TRUE)
+	v1 <- subset(eData, eData$industry==levels(eData$industry)[ind])
+	Industry[ind] <- levels(eData$industry)[ind]
+	PerfMonth[ind] <- mean(v1$performance..month, na.rm = TRUE)
+	PerfQtr[ind] <-  mean(v1$performance..quarter, na.rm = TRUE)
+	PerfYear[ind] <-  mean(v1$performance..year, na.rm = TRUE)
+	PerfYTD[ind] <-  mean(v1$performance..ytd, na.rm = TRUE)
+	SMA50[ind] <- mean(v1$x50.day.simple.moving.average, na.rm = TRUE)
+	SMA200[ind] <-  mean(v1$x200.day.simple.moving.average, na.rm = TRUE)
+	VolatMonth[ind] <-  mean(v1$volatility..month, na.rm = TRUE)
+	PE[ind] <- mean(v1$p.e, na.rm = TRUE)
+	PB[ind] <- mean(v1$p.b, na.rm = TRUE)
+	AvgEChg[ind] <- mean(v1$change, na.rm = TRUE)
+	StDevEChg[ind] <- sd(v1$change, na.rm = TRUE)
 	}
 IndustryStats <- data.frame(Industry = as.character(Industry),
-							PerfMonth = as.numeric(PerfMonth),
-							PerfQtr = as.numeric(PerfQtr),
-							PerfYear = as.numeric(PerfYear),
-							PerfYTD = as.numeric(PerfYTD),
-							SMA50 = as.numeric(SMA50),
-							SMA200 = as.numeric(SMA200),
-							VolatMonth= as.numeric(VolatMonth),
-							PtoE = as.numeric(PE),
-							PtoB = as.numeric(PB),
-							AvgEarnChg = as.numeric(AvgEChg),
-							StDevEarnChg = as.numeric(StDevEChg)
-							)
+		PerfMonth = as.numeric(PerfMonth),
+		PerfQtr = as.numeric(PerfQtr),
+		PerfYear = as.numeric(PerfYear),
+		PerfYTD = as.numeric(PerfYTD),
+		SMA50 = as.numeric(SMA50),
+		SMA200 = as.numeric(SMA200),
+		VolatMonth= as.numeric(VolatMonth),
+		PtoE = as.numeric(PE),
+		PtoB = as.numeric(PB),
+		AvgEarnChg = as.numeric(AvgEChg),
+		StDevEarnChg = as.numeric(StDevEChg)
+		)
 	
 #sector analysis
 Sector <- list()
@@ -96,35 +100,35 @@ PB <- list()
 AvgEChg <- list()
 StDevEChg <- list()
 
-numSec <- length(levels(eData$Sector))
+numSec <- length(levels(eData$sector))
 for (ind in 1:numSec) {
-	v1 <- subset(eData, eData$Sector==levels(eData$Sector)[ind])
-	Sector[ind] <- levels(eData$Sector)[ind]
-	PerfMonth[ind] <- mean(v1$Performance..Month, na.rm = TRUE)
-	PerfQtr[ind] <-  mean(v1$Performance..Quarter, na.rm = TRUE)
-	PerfYear[ind] <-  mean(v1$Performance..Year, na.rm = TRUE)
-	PerfYTD[ind] <-  mean(v1$Performance..YTD, na.rm = TRUE)
-	SMA50[ind] <- mean(v1$X50.Day.Simple.Moving.Average, na.rm = TRUE)
-	SMA200[ind] <-  mean(v1$X200.Day.Simple.Moving.Average, na.rm = TRUE)
-	VolatMonth[ind] <-  mean(v1$Volatility..Month, na.rm = TRUE)
-	PE[ind] <- mean(v1$P.E, na.rm = TRUE)
-	PB[ind] <- mean(v1$P.B, na.rm = TRUE)
-	AvgEChg[ind] <- mean(v1$Change, na.rm = TRUE)
-	StDevEChg[ind] <- sd(v1$Change, na.rm = TRUE)
+	v1 <- subset(eData, eData$sector==levels(eData$sector)[ind])
+	Sector[ind] <- levels(eData$sector)[ind]
+	PerfMonth[ind] <- mean(v1$performance..month, na.rm = TRUE)
+	PerfQtr[ind] <-  mean(v1$performance..quarter, na.rm = TRUE)
+	PerfYear[ind] <-  mean(v1$performance..year, na.rm = TRUE)
+	PerfYTD[ind] <-  mean(v1$performance..ytd, na.rm = TRUE)
+	SMA50[ind] <- mean(v1$x50.day.simple.moving.average, na.rm = TRUE)
+	SMA200[ind] <-  mean(v1$x200.day.simple.moving.average, na.rm = TRUE)
+	VolatMonth[ind] <-  mean(v1$volatility..month, na.rm = TRUE)
+	PE[ind] <- mean(v1$p.e, na.rm = TRUE)
+	PB[ind] <- mean(v1$p.b, na.rm = TRUE)
+	AvgEChg[ind] <- mean(v1$change, na.rm = TRUE)
+	StDevEChg[ind] <- sd(v1$change, na.rm = TRUE)
 	}
 SectorStats <- data.frame(Sector = as.character(Sector),
-							PerfMonth = as.numeric(PerfMonth),
-							PerfQtr = as.numeric(PerfQtr),
-							PerfYear = as.numeric(PerfYear),
-							PerfYTD = as.numeric(PerfYTD),
-							SMA50 = as.numeric(SMA50),
-							SMA200 = as.numeric(SMA200),
-							VolatMonth= as.numeric(VolatMonth),
-							PtoE = as.numeric(PE),
-							PtoB = as.numeric(PB),
-							AvgEarnChg = as.numeric(AvgEChg),
-							StDevEarnChg = as.numeric(StDevEChg)
-							)
+	PerfMonth = as.numeric(PerfMonth),
+	PerfQtr = as.numeric(PerfQtr),
+	PerfYear = as.numeric(PerfYear),
+	PerfYTD = as.numeric(PerfYTD),
+	SMA50 = as.numeric(SMA50),
+	SMA200 = as.numeric(SMA200),
+	VolatMonth= as.numeric(VolatMonth),
+	PtoE = as.numeric(PE),
+	PtoB = as.numeric(PB),
+	AvgEarnChg = as.numeric(AvgEChg),
+	StDevEarnChg = as.numeric(StDevEChg)
+	)
 	
 
 
