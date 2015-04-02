@@ -28,6 +28,14 @@ earnCor <- cor(eDataNum,eData$change,use="pairwise.complete",method="spearman")
 RSIsma20cor <- cor(eData$relative.strength.index..14.,eData$x20.day.simple.moving.average,
                 use="pairwise.complete",method="spearman")
 
+# make headings all lowercase for simplicity
+names(eData)<-tolower(names(eData))
+
+eDataNum <- eData[,-c(1:5,68:71)]       #remove non-numeric columns
+
+earnCor <- cor(eDataNum,eData$change,use="pairwise.complete",method="spearman")
+
+
 #interaction.plot(eData$earndate,eData$sector,eData$change)
 
 #avg chg vs. market chg
