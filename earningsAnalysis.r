@@ -3,6 +3,7 @@
 rm(list=ls())
 require(xts)
 
+
 # Data directories.  Assumes R directory is "Rscripts"
 dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data/",sep="")
 finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/",sep="")
