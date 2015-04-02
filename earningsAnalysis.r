@@ -4,8 +4,9 @@ rm(list=ls())
 require(xts)
 
 # Data directories.  Assumes R directory is "Rscripts"
-dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data",sep="")
-finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close",sep="")
+dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data/",sep="")
+finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/",sep="")
+earnDataFile <- "earningsData.csv"
 
 # read SP500 5yr data
 # sp5yr_1<-read.csv(paste(dataDir,"/sp500_5yrs_1.csv",sep=""))
@@ -17,14 +18,14 @@ sp5yr$Date<-as.Date(sp5yr$Date,format='%m/%d/%Y')       #format date
 sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 # read earnings data (pre-parsed)
-eData<-read.csv(paste(dataDir,"/earningsData.csv",sep=""))
+eData<-read.csv(paste(dataDir,earnDataFile,sep=""))
 
 # data cleanup
 names(eData)<-tolower(names(eData)) # make headings all lowercase for simplicity
 eDataNum <- eData[,-c(1:5,68:71)] #remove non-numeric columns
 
 
-earnCor <- cor(eDataNum,eData$change,use="pairwise.complete",method="spearman")
+earnCor <- cor(eDataNum,eData$chgaftearn,use="pairwise.complete",method="spearman")
 RSIsma20cor <- cor(eData$relative.strength.index..14.,eData$x20.day.simple.moving.average,
                 use="pairwise.complete",method="spearman")
 
