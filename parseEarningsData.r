@@ -33,6 +33,7 @@ fileList <- archiveFiles[(as.Date(substr(archiveFiles,1,8),format="%Y%m%d")>=sta
 
 #for each daily file except the last one (last one is for only after-earnings data)
 for (i in 1:(length(fileList)-1)) {
+#i <- 1
         fileToday <- fileList[i]
         fileTomorrow <- fileList[i+1]
 	print(fileToday)
@@ -59,6 +60,7 @@ for (i in 1:(length(fileList)-1)) {
 	
 	curFile <- cbind(curFile,EarnDate,EarnTime,dataDate) #add columns with earnings date, am/pm, data collection date
 	
+        # only extracting earnings where date and time are listed. If time unlisted, earnings likely unconfirmed
 	# if earnings were yesterday afternoon or today morning, then extract data
 	#daysData <- subset(curFile,((EarnDate==curDate)&(EarnTime=="Morning"))|((EarnDate==(curDate-1))&(EarnTime=="Afternoon")))
 
@@ -68,12 +70,19 @@ for (i in 1:(length(fileList)-1)) {
         postEarn <- subset(nextFile,nextFile$Ticker%in%eodData$Ticker)
         # find after-earnings data
         if (nrow(eodData)>0) { #check if any earnings found
+                
                 for (j in 1:length(eodData$Ticker)) {
-                        daysData <- cbind(eodData[j,],
-                                          ChgAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Change,
-                                          GapAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Gap
-                        )
-                }        
+                        if (j==1){
+                                daysData <- cbind(eodData[j,],
+                                                  ChgAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Change,
+                                                  GapAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Gap)
+                        } else {
+                                daysData <- rbind(daysData,cbind(eodData[j,],
+                                                        ChgAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Change,
+                                                        GapAftEarn=subset(postEarn,postEarn$Ticker==eodData[j,]$Ticker)$Gap))
+                        }
+                                
+                } 
         
         
         	if (!exists("parsedEarnings")) {

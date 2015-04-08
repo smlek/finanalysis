@@ -27,6 +27,9 @@ eDataNum <- eData[,-c(1:5,68:71)] #remove non-numeric columns
 
 
 earnCor <- cor(eDataNum,eData$chgaftearn,use="pairwise.complete",method="spearman")
+
+index <- which(eDataNum$chgaftearn >= 0.1 | eDataNum$chgaftearn < -0.1) #index for correlation
+earnCor <- cor(eDataNum[index,],eData$chgaftearn[index],use="pairwise.complete",method="spearman")
 RSIsma20cor <- cor(eData$relative.strength.index..14.,eData$x20.day.simple.moving.average,
                 use="pairwise.complete",method="spearman")
 
