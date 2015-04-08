@@ -1,22 +1,16 @@
+# Stan Mlekodaj
+#
+# Loads and analyzes parsed earnings data produced by parseEarningsData.r
+###############################################################################
 
 # Clear variables and load packages
 rm(list=ls())
 require(xts)
 
-
 # Data directories.  Assumes R directory is "Rscripts"
 dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data/",sep="")
 finDataDir<-paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/",sep="")
 earnDataFile <- "earningsData.csv"
-
-# read SP500 5yr data
-# sp5yr_1<-read.csv(paste(dataDir,"/sp500_5yrs_1.csv",sep=""))
-# sp5yr_2<-read.csv(paste(dataDir,"/sp500_5yrs_2.csv",sep=""))#broken up into 2 files
-# sp5yr<-cbind(sp5yr_1,sp5yr_2)
-# rm(sp5yr_1,sp5yr_2)
-sp5yr<-read.csv(paste(dataDir,"/sp500_5yr.csv",sep=""))
-sp5yr$Date<-as.Date(sp5yr$Date,format='%m/%d/%Y')       #format date
-sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 # read earnings data (pre-parsed)
 eData<-read.csv(paste(dataDir,earnDataFile,sep=""))
@@ -25,7 +19,7 @@ eData<-read.csv(paste(dataDir,earnDataFile,sep=""))
 names(eData)<-tolower(names(eData)) # make headings all lowercase for simplicity
 eDataNum <- eData[,-c(1:5,68:71)] #remove non-numeric columns
 
-
+# Correlations
 earnCor <- cor(eDataNum,eData$chgaftearn,use="pairwise.complete",method="spearman")
 
 index <- which(eDataNum$chgaftearn >= 0.1 | eDataNum$chgaftearn < -0.1) #index for correlation
