@@ -38,7 +38,8 @@ getQuote("EURUSD=X")
 startDate = as.Date("2008-01-13") #Specify period of time we are interested in  
 endDate = as.Date("2012-01-12")  
 tickers <- c("ARM","CSR")  
-getSymbols(tickers, src = "yahoo", from = startDate, to = endDate)
+data <- getSymbols(tickers, src = "yahoo", from = startDate, to = endDate)
+data <- adjustOHLC(data, use.Adjusted=TRUE)
 
 #### Economic
 USGDP <- Quandl("FRED/GDP",type="xts")
