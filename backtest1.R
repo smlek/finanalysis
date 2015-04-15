@@ -15,7 +15,7 @@ tickerDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/tick
 archiveDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/daily_archive/",sep="")
 
 #########  INPUTS  ############################################################
-quotesTechsFile <- "largeCap2007TechInd" # contains OHLC + tech indicators for 19 US large caps
+quotesTechsFile <- "largeCap2007TechInd" # contains OHLC, retunrs, tech indicators for 19 US large caps
 # Input R data files
 #quoteFile <- "largeCap2007" # OHLC data for 19 US large caps. 2007-April 2015
 # SP500 5yr data
@@ -29,8 +29,8 @@ sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 
 # Load datafile with historical quotes & tech indicators into a new environment
-largeCap <- new.env()
-load(file = quotesTechsFile,envir=largeCap)
+env1 <- new.env()
+load(file = quotesTechsFile,envir=env1)
 
 # Analysis 
 # cumulative log-returns - look for periodicity
@@ -38,9 +38,11 @@ load(file = quotesTechsFile,envir=largeCap)
 # 
 # backtester outline:
 #         load price data (& others) as xts - getSymbols()                              DONE
-#         calculate returns                     - ClCl(), diff(log()), periodReturn()
+#         calculate returns                     - ClCl(), diff(log()), periodReturn()   DONE
 #         add marker & analysis columns. Account for calculation delay  - TTR package   DONE
-#         add long & short indicators. Buy/Sell when indicator transitions
+#       Create list of strategies
+                
+#       Create long & short indicators. Buy/Sell when indicator transitions
 
 # Backtest on EOD close data
 # long/short ideas:

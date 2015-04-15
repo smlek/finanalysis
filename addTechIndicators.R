@@ -36,14 +36,16 @@ quotesTechsFile <- "largeCap2007TechInd" # contains OHLC + tech indicators for 1
 
 ###############################################################################
 
-# Get historical data for symbols in symbFile list
-symbs<-as.character(read.csv(paste(dataDir,symbFile,sep=""),header=FALSE)[,1])
 envmt <- new.env()
-getSymbols(symbs,env=envmt,src="yahoo")
+
+# Get historical data for symbols in symbFile list
+# symbs<-as.character(read.csv(paste(dataDir,symbFile,sep=""),header=FALSE)[,1])
+# envmt <- new.env()
+# getSymbols(symbs,env=envmt,src="yahoo")
 #save(list = ls(envmt), file = quoteFile,envir=envmt) # save to datafile
 
 # load OHLC data file 
-#load(file = quoteFile,envir=envmt)
+load(file = quoteFile,envir=envmt)
 
 #i<-ls(envmt)[1] # debugging
 for (i in ls(envmt)) {
@@ -56,7 +58,7 @@ for (i in ls(envmt)) {
         curData <- adjustOHLC(get(i,envir=envmt),use.Adjusted=TRUE) #replace Close with Adjusted prices
         #curData<-curData["2014"] # debugging
         
-        # Returns
+        # Log Returns
         daylogret <- periodReturn(curData,period="daily", type="log")
         weeklogret <- periodReturn(curData,period="weekly", type="log")
         monthlogret <- periodReturn(curData,period="monthly", type="log")
@@ -72,7 +74,12 @@ for (i in ls(envmt)) {
         rsi14 <- RSI(Cl(curData),n=14,maType="SMA"); names(rsi14) <- "rsi14" # RSI
         stoch1433 <- stoch(HLC(curData), nFastK = 14, nFastD = 3, nSlowD = 3) # Stochastic oscillator-overbought(oversold) if >80 (<20)
         wpr14 <- WPR(HLC(curData), n = 14); names(wpr14) <- "wpr14" # William's %R - overbought(oversold) if <20 (>80)
-        indicators <- merge(curData, # add tech indicators columns to original price data
+        
+        # add all indicators columns to original price data
+        indicators <- merge(curData, 
+                         daylogret,
+                         weeklogret,
+                         monthlogret,
                          atr14,
                          bbands202,
                          cmf20,
