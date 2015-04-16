@@ -32,7 +32,7 @@ sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 #########  OUTPUTS  ###########################################################
 # Output file
-quotesTechsFile <- "largeCap2007TechInd" # contains OHLC + tech indicators for 19 US large caps
+quotesTechsFile <- "largeCap2007TechInd" # contains OHLC, Returns, tech indicators for 19 US large caps
 
 ###############################################################################
 
@@ -52,16 +52,16 @@ for (i in ls(envmt)) {
         # initialize indicators
         atr14<-bbands202<-cmf20<-cmo14<-ema20<-vwma20<-macd12269<-rsi14<-
                 stoch1433<-wpr<-indicators<-curData<-
-                daylogret<-weeklogret<-monthlogret<-
+                dayret<-weekret<-monthret<-
                 list()
         
         curData <- adjustOHLC(get(i,envir=envmt),use.Adjusted=TRUE) #replace Close with Adjusted prices
         #curData<-curData["2014"] # debugging
         
-        # Log Returns
-        daylogret <- periodReturn(curData,period="daily", type="log")
-        weeklogret <- periodReturn(curData,period="weekly", type="log")
-        monthlogret <- periodReturn(curData,period="monthly", type="log")
+        # Returns
+        dayret <- periodReturn(curData,period="daily", type="arithmetic")
+        weekret <- periodReturn(curData,period="weekly", type="arithmetic")
+        monthret <- periodReturn(curData,period="monthly", type="arithmetic")
         
         # Technical indicators
         atr14 <- ATR(HLC(curData), n=14, maType="EMA") # Average True Range
@@ -77,9 +77,9 @@ for (i in ls(envmt)) {
         
         # add all indicators columns to original price data
         indicators <- merge(curData, 
-                         daylogret,
-                         weeklogret,
-                         monthlogret,
+                         dayret,
+                         weekret,
+                         monthret,
                          atr14,
                          bbands202,
                          cmf20,
