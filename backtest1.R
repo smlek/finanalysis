@@ -5,6 +5,7 @@ rm(list=ls())
 library(xts)
 library(TTR)
 library(quantmod)
+library(PerformanceAnalytics)
 
 #########  FOLDER LOCATIONS  ##################################################
 # R data directory
@@ -33,10 +34,12 @@ env1 <- new.env()
 load(file = quotesTechsFile,envir=env1)
 ret <- xts()
 
-i<-ls(env1)[1] 
+i<-ls(env1)[1] #debugging
 
 #for (i in ls(env1)) {
         curData <- get(i,envir=env1)
+
+
         dayret <- curData$daily.returns; names(dayret) <- i
         ret <- merge(ret,
                      dayret)
@@ -58,6 +61,17 @@ i<-ls(env1)[1]
 #               Simple:
 #                       RSI
 #       Create long & short indicators. Buy/Sell when indicator transitions
+
+# SPY backtesting
+source("finFuncs.R")
+getSymbols("SPY", env=env1,src="yahoo")
+addSymbAnalysis("SPY",envmt=env1)
+
+rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
+
+
+
+
 
 # Backtest on EOD close data
 # long/short ideas:

@@ -39,6 +39,7 @@ quotesTechsFile <- "largeCap2007TechInd" # contains OHLC, Returns, tech indicato
 envmt <- new.env()
 
 # Get historical data for symbols in symbFile list
+# symbs <- c("^GSPC","SPY")
 # symbs<-as.character(read.csv(paste(dataDir,symbFile,sep=""),header=FALSE)[,1])
 # envmt <- new.env()
 # getSymbols(symbs,env=envmt,src="yahoo")
