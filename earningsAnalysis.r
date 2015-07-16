@@ -1,5 +1,6 @@
 # Stan Mlekodaj
 #
+#
 # Loads and analyzes parsed earnings data produced by parseEarningsData.r
 ###############################################################################
 
