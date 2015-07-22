@@ -8,9 +8,9 @@ library(TTR)
 library(quantmod)
 
 # Add returns & technical indicators to price object made by getSymbols
+# Replaces Close data with Adjusted Close
 addSymbAnalysis<-function(i,envmt){
         
-#for (i in ls(envmt)) {
         # initialize indicators
         atr14<-bbands202<-cmf20<-cmo14<-ema20<-vwma20<-macd12269<-rsi14<-
                 stoch1433<-wpr<-indicators<-curData<-
@@ -18,7 +18,6 @@ addSymbAnalysis<-function(i,envmt){
                 list()
         
         curData <- adjustOHLC(get(i,envir=envmt),use.Adjusted=TRUE) #replace Close with Adjusted prices
-        #curData<-curData["2014"] # debugging
         
         # Returns
         dayret <- periodReturn(curData,period="daily", type="arithmetic")

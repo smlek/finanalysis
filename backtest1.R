@@ -16,13 +16,8 @@ tickerDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/tick
 archiveDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/daily_archive/",sep="")
 
 #########  INPUTS  ############################################################
-quotesTechsFile <- "largeCap2007TechInd" # contains OHLC, returns, tech indicators for 19 US large caps
-# Input R data files
-#quoteFile <- "largeCap2007" # OHLC data for 19 US large caps. 2007-April 2015
-# SP500 5yr data
-sp5yr<-read.csv(paste(dataDir,"/sp500_5yr.csv",sep=""))
-sp5yr$Date<-as.Date(sp5yr$Date,format='%m/%d/%Y')       #format date
-sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
+quotesTechsFile <- "largeCap2007TechInd" # OHLC, returns, tech indicators for 19 US large caps
+sp5yrFile <- "sp5yrsXTS" # SP500 5yr data XTS object
 
 #########  OUTPUTS  ###########################################################
 
@@ -30,22 +25,18 @@ sp5yrts<-xts(sp5yr[,-1],sp5yr$Date)     # time series object
 
 
 # Load datafile with historical quotes & tech indicators into a new environment
-env1 <- new.env()
-load(file = quotesTechsFile,envir=env1)
-ret <- xts()
+big19 <- new.env()
+load(file = quotesTechsFile,envir=big19)
 
-i<-ls(env1)[1] #debugging
+#i<-ls(big19)[1] #debugging
 
-#for (i in ls(env1)) {
-        curData <- get(i,envir=env1)
+for (i in ls(big19)) {
+        curData <- get(i,envir=big19)
 
 
-        dayret <- curData$daily.returns; names(dayret) <- i
-        ret <- merge(ret,
-                     dayret)
-
-        trigger <- curData$daily.returns[curData$rsi14 < 20]
-#}
+        trigger <- curData$daily.returns[curData$wpr14 < 20]
+        
+}
 
 # Analysis 
 # cumulative returns - look for periodicity
@@ -62,10 +53,9 @@ i<-ls(env1)[1] #debugging
 #                       RSI
 #       Create long & short indicators. Buy/Sell when indicator transitions
 
+        
 # SPY backtesting
-source("finFuncs.R")
-getSymbols("SPY", env=env1,src="yahoo")
-addSymbAnalysis("SPY",envmt=env1)
+
 
 rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
 
@@ -84,7 +74,11 @@ rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
 #       USD/EUR
 #       other indexes USA & foreign
 # In order to use TTR package for indicators, need OHLC price objects (getSymbols)
-
+#
+# Use PerfAnalytics to compute
+#         annualized returns,
+#         drawdown,
+        
 
 # Backtest on FinViz database
 #  ideas:
@@ -94,7 +88,7 @@ rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
 
 
 # Example
-f
+
 
 
 
