@@ -30,13 +30,27 @@ load(file = quotesTechsFile,envir=big19)
 
 #i<-ls(big19)[1] #debugging
 
+# initialize matrix of strategy returns
+returns <- xts()
+tzone(returns) <- tzone(big19$SPY)
+returns$SPY_REF <- big19$SPY$daily.returns     # SPY as market benchmark
+
+# loop over all stocks 
+#i <- "AAPL"
 for (i in ls(big19)) {
         curData <- get(i,envir=big19)
 
-
-        trigger <- curData$daily.returns[curData$wpr14 < 20]
+        # strategy
+        trigger <- curData$daily.returns[lag(curData$rsi14 < 20)]    # RSI<20
         
+        names(trigger) <- i     # rename to ticker
+        returns<-merge.xts(returns,trigger,join="left")  # "left" to keep reference time index
 }
+
+Return.cumulative(returns)
+sum(Return.cumulative(returns)[-1])
+
+max(rowSums(!is.na(returns["2007"][,-1]))) # max daily portfolio size (count non-NA values by row)
 
 # Analysis 
 # cumulative returns - look for periodicity
@@ -51,14 +65,13 @@ for (i in ls(big19)) {
 #       Create list of strategies
 #               Simple:
 #                       RSI
+#                       BBands
+
 #       Create long & short indicators. Buy/Sell when indicator transitions
+#               Negate returns during short periods to use standard perf. meas.
 
         
 # SPY backtesting
-
-
-rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
-
 
 
 
@@ -70,7 +83,7 @@ rsi14Ret<-env1$SPY$daily.returns[lag(env1$SPY$rsi14 < 30)]
 #       RSI
 #       trends: EMA, SMA
 #       volatility, volume
-#       Gap
+#       Gap/OHLC
 #       USD/EUR
 #       other indexes USA & foreign
 # In order to use TTR package for indicators, need OHLC price objects (getSymbols)
