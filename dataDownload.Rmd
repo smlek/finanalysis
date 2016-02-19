@@ -41,6 +41,8 @@ tickers <- c("ARM","CSR")
 data <- getSymbols(tickers, src = "yahoo", from = startDate, to = endDate)
 data <- adjustOHLC(data, use.Adjusted=TRUE)
 
+Quandl("WIKI/MCY", authcode="gW-ELo6Cq1GqfYyks2r3")
+
 #### Economic
 USGDP <- Quandl("FRED/GDP",type="xts")
 

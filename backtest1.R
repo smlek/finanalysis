@@ -16,8 +16,9 @@ tickerDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/tick
 archiveDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/daily_archive/",sep="")
 
 #########  INPUTS  ############################################################
-quotesTechsFile <- "largeCap2007TechInd" # OHLC, returns, tech indicators for 19 US large caps
-sp5yrFile <- "sp5yrsXTS" # SP500 5yr data XTS object
+#quotesTechsFile <- "largeCap2007TechInd" # OHLC, returns, tech indicators for 19 US large caps
+quotesTechsFile <- "nasdaq100_2007TechInd" # OHLC, returns, tech indicators for Nasdaq100
+
 
 #########  OUTPUTS  ###########################################################
 
@@ -25,32 +26,50 @@ sp5yrFile <- "sp5yrsXTS" # SP500 5yr data XTS object
 
 
 # Load datafile with historical quotes & tech indicators into a new environment
-big19 <- new.env()
-load(file = quotesTechsFile,envir=big19)
+env1 <- new.env()
+load(file = quotesTechsFile,envir=env1)
 
-#i<-ls(big19)[1] #debugging
+#i<-ls(env1)[1] #debugging
 
 # initialize matrix of strategy returns
 returns <- xts()
-tzone(returns) <- tzone(big19$SPY)
-returns$SPY_REF <- big19$SPY$daily.returns     # SPY as market benchmark
+tzone(returns) <- tzone(env1$SPY)
+returns$SPY_REF <- env1$SPY$daily.returns     # SPY as market benchmark
+leverage <- 1
 
 # loop over all stocks 
 #i <- "AAPL"
-for (i in ls(big19)) {
-        curData <- get(i,envir=big19)
-
-        # strategy
-        trigger <- curData$daily.returns[lag(curData$rsi14 < 20)]    # RSI<20
+for (i in ls(env1)) {
+        curData <- get(i,envir = env1)
+        holdings <- longEnter <- longExit <- shortEnter <- shortExit <-
+                rep(FALSE,length(curData$daily.returns)) # initialize holdings vector
         
-        names(trigger) <- i     # rename to ticker
-        returns<-merge.xts(returns,trigger,join="left")  # "left" to keep reference time index
+
+        # STRATEGY. Using "lag" assuming buy at Close(n) giving returns(n+1). lag() fills in with NA's
+        
+        # LONG entry
+        longEnter <- lag(curData$pctB < 0, k=1)      #below lower BBand
+        #longEnter <- lag(curData$rsi14 < 20, k=1)    # RSI<20
+        # LONG exit
+        # SHORT entry (DONT FORGET TO NEGATE RETURNS)
+        # SHORT exit
+        
+        holdings <- longEnter|longExit|shortEnter|shortExit
+        # pull returns using long/short mask
+        ret <- curData$daily.returns*holdings*leverage
+                
+        names(ret) <- i     # rename to ticker
+        returns<-merge.xts(returns,ret,join="left")  # "left" to keep reference time index
 }
 
+# Performance Analysis
 Return.cumulative(returns)
-sum(Return.cumulative(returns)[-1])
+mean(Return.cumulative(returns)[-1]) #portfolio return except SPY
 
-max(rowSums(!is.na(returns["2007"][,-1]))) # max daily portfolio size (count non-NA values by row)
+max(rowSums(!is.na(returns[,-1]))) # daily portfolio size (non-NA values by row except SPY)
+mean(rowSums(!is.na(returns[,-1])))
+
+
 
 # Analysis 
 # cumulative returns - look for periodicity
@@ -62,45 +81,11 @@ max(rowSums(!is.na(returns["2007"][,-1]))) # max daily portfolio size (count non
 #         load price data (& others) as xts - getSymbols()                              DONE
 #         calculate returns                     - ClCl(), diff(log()), periodReturn()   DONE
 #         add marker & analysis columns. Account for calculation delay  - TTR package   DONE
-#       Create list of strategies
-#               Simple:
-#                       RSI
-#                       BBands
-
 #       Create long & short indicators. Buy/Sell when indicator transitions
 #               Negate returns during short periods to use standard perf. meas.
 
-        
-# SPY backtesting
 
 
-
-
-# Backtest on EOD close data
-# long/short ideas:
-#       bolinger bands, i.e. SMA +/- xSDDEVs
-#       bolinger bands vs. market, industry, sector
-#       RSI
-#       trends: EMA, SMA
-#       volatility, volume
-#       Gap/OHLC
-#       USD/EUR
-#       other indexes USA & foreign
-# In order to use TTR package for indicators, need OHLC price objects (getSymbols)
-#
-# Use PerfAnalytics to compute
-#         annualized returns,
-#         drawdown,
-        
-
-# Backtest on FinViz database
-#  ideas:
-#         analyst recomm, change
-#         earnings results (changes in forecast EPS)
-#         P/B, valuation
-
-
-# Example
 
 
 
