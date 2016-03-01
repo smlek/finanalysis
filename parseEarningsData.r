@@ -4,13 +4,13 @@
 # need to pull out EOD data just before earnings and the % change from day after earnings
 # This is specific to database from FinViz
 ###############################################################################
-
+rm(list=ls())
 ########### start/end date for searching for earnings #############
 # endData should  be second to last file collected in order to parse last file
 startDate <- as.Date("2014-04-01") 	#YYYY-MM-DD format
-endDate <- as.Date("2014-10-31")   	#YYYY-MM-DD format
+endDate <- as.Date("2014-04-21")   	#YYYY-MM-DD format
 ###################################################################
-rm(list=ls())
+
 
 # output data file
 outFile <- "earningsData.csv"
