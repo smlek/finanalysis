@@ -42,8 +42,16 @@ if (removeNonNumerics) {
         earnData <- earnData[, sapply(earnData, is.numeric)]
 }
 
+# remove irrelevant columns
+earnData <- subset(earnData, select = -c(Average.Volume, Volume, Price,
+                                         Shares.Outstanding, Shares.Float, Float.Short)
+                   )
+
+# Set NA divident yield to 0
+earnData$Dividend.Yield[is.na(earnData$Dividend.Yield)] <- 0
+
 # removing columns with high NA count
-earnData <- subset(earnData, select = -c(Dividend.Yield, P.Free.Cash.Flow))
+earnData <- subset(earnData, select = -c(P.Free.Cash.Flow))
 
 # count incomplete rows with at least one NA column
 naRows <- apply(earnData, 1, function(x){any(is.na(x))})
