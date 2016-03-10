@@ -45,7 +45,7 @@ library(caret)
 
 ## Lessons learned
 - neuralnet method in train() expects numerical outputs, not factors
-- GLM, rpart & other classification expect factor outputs
+- GLM, rpart, H2o & other classification expect factor outputs
 
 ## Artificial data set for model testing
 Idea:  Create input/output data set from a set of equations & random variables. 
@@ -121,6 +121,9 @@ outCols <- which(n %in% outputColumn)
 # Which columns to normalize - 0/1 outputs/inputs dont need scaling.
 normCols <- inCols
 
+deCorrelateInputs <- TRUE
+
+
 #######################################################################
 
 
@@ -144,7 +147,6 @@ normCols <- inCols
 allData <- rawData
 data_size <- nrow(allData)
 featureNames <- colnames(allData)
-deCorrelateInputs <- TRUE
 
 # shuffle & split data in training and test sets 
 # Cross-Validation set omitted since using repeatedcv in caret
@@ -179,6 +181,7 @@ trainInputs <- predict(preProcValues, trainInputs)
 # test inputs normalized using training data normalization values
 testInputs <- predict(preProcValues, testInputs)
 
+# Remove correlated inputs
 if(deCorrelateInputs) {
     corCols <- findCorrelation(cor(trainInputs), cutoff = 0.9, names = FALSE )
     trainInputs <- trainInputs[, -corCols]
@@ -193,7 +196,7 @@ if(deCorrelateInputs) {
 # testInputs <- predict(preProcValuesPCA, testInputs)
 ```
 
-Input Data Information:
+Raw Input Data Information:
 
 - Number of input features:  `r length(inCols)`
 - Number of outputs:         `r length(outCols)`
@@ -206,6 +209,20 @@ Input Data Information:
 |Data Sets   | `r nrow(trainData)`     | `r nrow(testData)`     |
 
 Prediction Formula:  `r fo`
+
+## Reduced Data Set
+
+Correlated inputs removed? `r deCorrelateInputs `
+
+Columns removed from original data:
+
+`r names(trainInputs)[corCols]`
+
+Reduced Input Data Information:
+
+- Number of input features:  `r ncol(trainInputs)`
+- Output:                 :  `r outputColumn`
+
 
 ## Decision Tree (rpart)
 
