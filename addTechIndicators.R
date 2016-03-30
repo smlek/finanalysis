@@ -17,10 +17,6 @@ source("finFuncs.R")
 #########  FOLDER LOCATIONS  ##################################################
 # R data directory
 dataDir<-paste(Sys.getenv("HOME"),"/Rscripts/data/",sep="")
-# ticker data directory
-tickerDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/ticker_data/",sep="")
-# daily file archive directory
-archiveDir <- paste(Sys.getenv("HOME"),"/Finance/earnings_database/all_close/daily_archive/",sep="")
 
 #########  INPUTS  ############################################################
 # csv stock symbol files
@@ -50,7 +46,7 @@ envmt <- new.env()
 # load OHLC data file 
 load(file = quoteFile, envir=envmt)
 # Add technical indicators to symbols 
-numCols <-28
+numCols <-34
 
 for (i in ls(envmt)) {
         # Remove symbol if less than 1yr of data

@@ -1,0 +1,221 @@
+---
+title: "Machine Learning on Earnings Results"
+subtitle: ""
+author: "Stan Mlekodaj"
+date: "February 29, 2016"
+output: html_document
+---
+```{r overhead, echo=FALSE, message=FALSE}
+# General environment setup
+# Clear variables
+rm(list=ls())
+# all par settings which could be changed.
+old.par <- par(no.readonly = TRUE)
+# Load required packages
+#library(knitr)
+#library(xtable)
+#library(data.table)
+#library(nnet)
+#library(neuralnet)
+#library(randomForest)
+library(RSNNS)
+#library(ROCR)
+library(caret)
+```
+```{r, ref.label="functions", echo=FALSE}
+#runs chunk with all function definitions
+```
+
+## Data Definitions
+
+```{r,echo=FALSE}
+############ define data, model formula (training sets in rows) #######
+# input data file
+dataFile <- "nasdaq100_2007TechInd_combined"
+load(file = dataFile)
+
+# Apply data filters
+f1 <- dailyData$Next != 0  #remove zero returens
+f2 <- TRUE
+f3 <- TRUE
+f4 <- TRUE
+f5 <- TRUE
+f6 <- TRUE
+f7 <- TRUE
+f8 <- TRUE
+f9 <- TRUE
+f10 <- TRUE
+
+rawData <- dailyData[ f1 & f2 & f3 & f4 & f5 & f6 & f7 & f8 & f9 & f10, ]
+
+# define SignNext = pos/neg After Earnings Change
+rawData$SignNextReturn <- sign(rawData$Next)
+
+# covert to factor output
+rawData$SignNextReturn <- factor(rawData$SignNextReturn, levels=c("-1","1"), labels=c("Down","Up"))
+
+# declare output columns
+allOutColNames <- c("Next", "SignNextReturn") # assume others are all inputs
+outputColumn <- "SignNextReturn"
+
+linearOutput <- FALSE        # linear output=TRUE, factor output=FALSE
+normalizeOutputs <- FALSE    # don't normalize factors
+inputNormType <- "norm"     # type = "norm", "0_1" or "center"
+outputNormType <- "0_1" 
+#mlpHiddenActFunc <- "Act_TanH" # only for RSNNS::mlp()
+deCorrelateInputs <- TRUE
+#######################################################################
+```
+
+
+```{r,echo=FALSE}
+allData <- rawData
+
+# input & output column indexes
+n <- names(allData)
+inCols <- which( !(n %in% allOutColNames) )
+outCols <- which(n %in% outputColumn)
+
+# shuffle & split data in training and test sets 
+data_size <- nrow(allData)
+allData <- allData[sample(data_size), ]
+splitIndex <- data_size * 0.8
+trainInputs <- allData[1 : splitIndex, inCols]
+trainOutputs <- allData[1 : splitIndex, outCols]
+testInputs <- allData[(splitIndex + 1) : data_size, inCols]
+testOutputs <- allData[(splitIndex + 1) : data_size, outCols]
+
+# Remove correlated inputs (caret)
+if(deCorrelateInputs) {
+        corCols <- findCorrelation(cor(trainInputs), cutoff = 0.9, names = FALSE )
+        if(length(corCols) > 0) {
+                trainInputs <- trainInputs[, -corCols]
+                testInputs <- testInputs[, -corCols]  
+        }
+        
+}
+inColNames <- colnames(trainInputs)
+
+# Input Normalization (RSNNS)
+trainInputs <- normalizeData(trainInputs, type = inputNormType) #also type = "0_1" or "center"
+# # test inputs normalized using training data normalization values
+testInputs <- normalizeData(testInputs, type = attr(trainInputs, "normParams"))
+
+# # Input Normalization - PCA
+# preProcValuesPCA <- preProcess(trainInputs, method = "pca")
+# trainInputs <- predict(preProcValuesPCA, trainInputs)
+# # test inputs normalized using training data normalization values
+# testInputs <- predict(preProcValuesPCA, testInputs)
+
+# Output Normalization (RSNNS) 
+if(normalizeOutputs) {
+        trainOutputs <- normalizeData(trainOutputs, type = outputNormType) #also type = "0_1" or "center"
+        testOutputs <- normalizeData(testOutputs, type = attr(trainOutputs, "normParams")) 
+}
+
+# reconstruct train & test dataframes
+trainData <- data.frame(trainInputs, trainOutputs)
+colnames(trainData) <- c(inColNames, outputColumn)
+testData <- data.frame(testInputs, testOutputs)
+colnames(testData) <- c(inColNames, outputColumn)
+
+```
+
+
+
+Raw Input Data Information:
+
+- Number of input features:  `r length(inCols)`
+- Number of outputs:         `r length(outCols)`
+- Number of total data sets: `r data_size`
+
+
+|            |Training Data            | Test Data              |
+|------------|-------------------------|------------------------|
+|Skewness    | `r table(trainOutputs)` | `r table(testOutputs)` |
+|Data Sets   | `r nrow(trainData)`     | `r nrow(testData)`     |
+
+
+## Reduced Data Set
+
+Correlated inputs removed? `r deCorrelateInputs `
+
+Columns removed from original data:
+
+`r names(allData)[inCols %in% corCols]`
+
+Reduced Input Data Information:
+
+- Number of input features:  `r ncol(trainInputs)`
+- Output:                 :  `r outputColumn`
+
+## Input Data Histograms
+
+```{r,echo=FALSE}
+#i <- 2
+for (i in 1:length(inColNames)){
+    hist(trainData[, i],
+         breaks = 30,
+         main = inColNames[i]
+         )
+    
+}
+
+
+```
+
+## H20 Deep Learning
+```{r,echo=FALSE}
+library(h2o)
+h2o.init(ip = "localhost", port = 54321, nthreads = 3, max_mem_size = "3g")
+#demo(h2o.deeplearning)
+
+h2oModel <- h2o.deeplearning(x = inColNames, #number indexes also seem to work
+                             y = outputColumn, 
+                             training_frame = as.h2o(trainData),
+                             validation_frame = as.h2o(testData),
+                             #activation = "Rectifier",
+                             activation = "Tanh",
+                             hidden = c(32,16),
+                             epochs = 5000,
+                             train_samples_per_iteration = 10, # Auto
+                             #train_samples_per_iteration = 0,  # one epoch
+                             #nfolds = 5,
+                             l1 = 1e-6,
+                             l2 = 1e-6,
+                             score_interval = 1, #time in seconds
+                             score_training_samples = 10000, # 0=all
+                             stopping_tolerance = 0.01,
+                             stopping_rounds = 5,
+                             export_weights_and_biases = TRUE,
+                             variable_importances = TRUE
+                            )
+h2oModel
+plot(h2oModel)
+#h2o.weights(h2oModel, matrix_id = 1)
+#h2o.biases(h2oModel)
+h2o.scoreHistory(h2oModel)
+h2o.varimp(h2oModel)
+#feat.l1 <- h2o.deepfeatures(h2oModel, data = as.h2o(trainData), layer = 1)
+# h2o.no_progress()
+# h2o.show_progress()
+h2o.shutdown(prompt=FALSE)
+
+# h2oModelPredict <- predict(h2oModel, as.h2o(testData))
+# h2operformance = h2o.performance(model = h2oModel, valid = TRUE)
+# h2operformance = h2o.performance(model = h2oModel)
+#print(h2operformance)
+
+```
+
+
+
+
+```{r functions, echo=FALSE, eval=FALSE}
+# Internal functions
+
+```
+
+
+
+

@@ -54,7 +54,7 @@ for (i in ls(env1)) {
         # SHORT entry (DONT FORGET TO NEGATE RETURNS)
         # SHORT exit
         
-        holdings <- longEnter|longExit|shortEnter|shortExit
+        holdings <- longEnter|longExit|shortEnter|shortExit  ?????
         # pull returns using long/short mask
         ret <- curData$daily.returns*holdings*leverage
                 

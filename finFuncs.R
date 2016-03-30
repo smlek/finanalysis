@@ -15,14 +15,25 @@ addSymbAnalysis<-function(i,envmt){
         atr14<-bbands202<-cmf20<-cmo14<-ema20<-vwma20<-macd12269<-rsi14<-
                 stoch1433<-wpr<-indicators<-curData<-
                 dayret<-weekret<-monthret<-
+                logret1d<-logret2d<-logret3d<-logret4d<-logret5d<-logret10d<-logret20d<-logret30d<-
                 list()
         
         curData <- adjustOHLC(get(i,envir=envmt),use.Adjusted=TRUE) #replace Close with Adjusted prices
         
         # Returns
-        dayret <- periodReturn(curData,period="daily", type="arithmetic")
-        weekret <- periodReturn(curData,period="weekly", type="arithmetic")
-        monthret <- periodReturn(curData,period="monthly", type="arithmetic")
+#         weekret <- periodReturn(curData,period="weekly", type="log")
+#         monthret <- periodReturn(curData,period="monthly", type="log")
+        logret1d <- Delt(Cl(curData), k = 1, type='log')
+        logret2d <- Delt(Cl(curData), k = 2, type='log')
+        logret3d <- Delt(Cl(curData), k = 3, type='log')
+        logret4d <- Delt(Cl(curData), k = 4, type='log')
+        logret5d <- Delt(Cl(curData), k = 5, type='log')
+        logret10d <- Delt(Cl(curData), k = 10, type='log')
+        logret20d <- Delt(Cl(curData), k = 20, type='log')
+        logret30d <- Delt(Cl(curData), k = 30, type='log')
+        
+        # next day's returns
+        NextDayRet <- Next(logret1d)
         
         # Technical indicators
         atr14 <- ATR(HLC(curData), n=14, maType="EMA") # Average True Range
@@ -38,9 +49,10 @@ addSymbAnalysis<-function(i,envmt){
         
         # add all indicators columns to original price data
         indicators <- merge(curData, 
-                            dayret,
-                            weekret,
-                            monthret,
+                            logret1d,logret2d,logret3d,logret4d,logret5d,logret10d,logret20d,logret30d,
+#                             weekret,
+#                             monthret,
+                            NextDayRet,
                             atr14,
                             bbands202,
                             cmf20,
